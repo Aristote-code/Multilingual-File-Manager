@@ -1,11 +1,13 @@
 import { useTranslation } from 'react-i18next';
-import { TrashIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline';
 
 interface File {
   _id: string;
   name: string;
+  path: string;
   size: number;
   createdAt: string;
+  url?: string;
 }
 
 interface FileListProps {
@@ -22,6 +24,22 @@ export function FileList({ files, onDelete }: FileListProps) {
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const handleDownload = (file: File) => {
+    // Create full URL using the backend URL
+    const fileUrl = `http://localhost:3001${file.url}`;
+    window.open(fileUrl, '_blank');
   };
 
   if (files.length === 0) {
@@ -54,14 +72,22 @@ export function FileList({ files, onDelete }: FileListProps) {
         <tbody className="bg-white divide-y divide-gray-200">
           {files.map((file) => (
             <tr key={file._id}>
-              <td className="px-6 py-4 whitespace-nowrap">{file.name}</td>
               <td className="px-6 py-4 whitespace-nowrap">
-                {formatFileSize(file.size)}
+                <div className="text-sm text-gray-900">{file.name}</div>
               </td>
               <td className="px-6 py-4 whitespace-nowrap">
-                {new Date(file.createdAt).toLocaleDateString()}
+                <div className="text-sm text-gray-500">{formatFileSize(file.size)}</div>
               </td>
-              <td className="px-6 py-4 whitespace-nowrap text-right">
+              <td className="px-6 py-4 whitespace-nowrap">
+                <div className="text-sm text-gray-500">{formatDate(file.createdAt)}</div>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <button
+                  onClick={() => handleDownload(file)}
+                  className="text-indigo-600 hover:text-indigo-900 mr-4"
+                >
+                  <ArrowDownTrayIcon className="h-5 w-5" />
+                </button>
                 <button
                   onClick={() => onDelete(file._id)}
                   className="text-red-600 hover:text-red-900"

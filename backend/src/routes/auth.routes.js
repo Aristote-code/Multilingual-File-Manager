@@ -18,6 +18,7 @@ router.post('/register', async (req, res) => {
 
     res.status(201).json({ message: 'User registered successfully' });
   } catch (error) {
+    console.error('Registration error:', error);
     res.status(500).json({ message: 'Error registering user' });
   }
 });
@@ -37,8 +38,10 @@ router.post('/login', async (req, res) => {
 
     res.json({ token });
   } catch (error) {
+    console.error('Login error:', error);
     res.status(500).json({ message: 'Error logging in' });
   }
 });
 
-exports.authRoutes = router;
+// Export the router directly
+module.exports = router;

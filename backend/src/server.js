@@ -6,12 +6,12 @@ const passport = require('passport');
 const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
-const { authRoutes } = require('./routes/auth.routes');
-const { fileRoutes } = require('./routes/file.routes');
+const authRoutes = require('./routes/auth.routes');
+const fileRoutes = require('./routes/file.routes');
 const { configurePassport } = require('./config/passport');
 
 const app = express();
-const PORT = process.env.PORT || 3001; // Changed to 3001 to avoid conflict with Vite
+const PORT = process.env.PORT || 3001;
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, '../uploads');
@@ -19,16 +19,19 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
 
+// Ensure uploads directory has correct permissions
+fs.chmodSync(uploadsDir, '755');
+
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173', // Vite's default port
+  origin: 'http://localhost:5173',
   credentials: true
 }));
 app.use(express.json());
 app.use(passport.initialize());
 configurePassport(passport);
 
-// Static files
+// Serve static files from uploads directory
 app.use('/uploads', express.static(uploadsDir));
 
 // Routes
@@ -44,11 +47,12 @@ i18next.init({
   }
 });
 
-// Use MongoDB in-memory for development
+// MongoDB connection
 mongoose.connect('mongodb://127.0.0.1:27017/file-manager')
   .then(() => console.log('Connected to MongoDB'))
   .catch(err => {
-    console.log('MongoDB connection error. Please make sure MongoDB is running.');
+    console.error('MongoDB connection error:', err);
+    console.log('Please make sure MongoDB is running.');
     process.exit(1);
   });
 

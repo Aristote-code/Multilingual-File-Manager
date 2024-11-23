@@ -26,8 +26,8 @@ export default function Register() {
         password: formData.password
       });
       navigate('/login');
-    } catch (error) {
-      setError('Registration failed. Please try again.');
+    } catch (error: any) {
+      setError(error.response?.data?.message || 'Registration failed. Please try again.');
     }
   };
 
