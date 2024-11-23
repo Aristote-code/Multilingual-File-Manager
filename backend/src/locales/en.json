@@ -1,0 +1,13 @@
+{
+  "auth": {
+    "invalidCredentials": "Invalid credentials",
+    "userRegistered": "User registered successfully",
+    "userExists": "Username already exists"
+  },
+  "files": {
+    "uploaded": "File uploaded successfully",
+    "deleted": "File deleted successfully",
+    "notFound": "File not found",
+    "unauthorized": "Unauthorized access"
+  }
+}

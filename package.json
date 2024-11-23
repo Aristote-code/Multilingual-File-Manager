@@ -1,0 +1,19 @@
+{
+  "name": "multilingual-file-manager",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "npm run start --workspace=backend",
+    "start:frontend": "npm run dev --workspace=frontend",
+    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "test": "npm run test --workspaces"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

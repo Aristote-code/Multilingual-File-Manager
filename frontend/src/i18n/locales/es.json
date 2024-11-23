@@ -1,0 +1,37 @@
+{
+  "common": {
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "logout": "Cerrar sesión",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "submit": "Enviar",
+    "error": "Error",
+    "success": "Éxito"
+  },
+  "fileManager": {
+    "title": "Administrador de Archivos",
+    "uploadButton": "Subir Archivo",
+    "noFiles": "No se encontraron archivos",
+    "uploadSuccess": "Archivo subido exitosamente",
+    "deleteSuccess": "Archivo eliminado exitosamente",
+    "error": {
+      "upload": "Error al subir el archivo",
+      "delete": "Error al eliminar el archivo",
+      "fetch": "Error al obtener los archivos"
+    }
+  },
+  "fileUpload": {
+    "clickToUpload": "Haz clic para subir",
+    "dragDrop": "o arrastra y suelta",
+    "supportedFormats": "Todos los formatos de archivo son compatibles"
+  },
+  "fileList": {
+    "name": "Nombre",
+    "size": "Tamaño",
+    "date": "Fecha",
+    "actions": "Acciones",
+    "empty": "Aún no hay archivos subidos"
+  }
+}
