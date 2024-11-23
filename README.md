@@ -219,6 +219,78 @@ multilingual-file-manager/
 
 ---
 
+## API Documentation
+
+### Authentication
+
+#### Register User
+```bash
+curl -X POST http://localhost:5000/api/users/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "testuser",
+    "email": "test@example.com",
+    "password": "password123",
+    "preferredLanguage": "en"
+  }'
+```
+
+#### Login
+```bash
+curl -X POST http://localhost:5000/api/users/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "password123"
+  }'
+```
+
+### File Operations
+
+#### Upload File
+```bash
+curl -X POST http://localhost:5000/api/files/upload \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "file=@/path/to/your/file.pdf"
+```
+
+#### Get Upload Progress
+```bash
+curl -X GET http://localhost:5000/api/files/progress/TASK_ID \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+#### List Files
+```bash
+curl -X GET http://localhost:5000/api/files \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+#### Search Files
+```bash
+curl -X GET "http://localhost:5000/api/files/search?query=document" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+#### Share File
+```bash
+curl -X POST http://localhost:5000/api/files/FILE_ID/share \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "userId": "USER_ID_TO_SHARE_WITH"
+  }'
+```
+
+#### Download File
+```bash
+curl -X GET http://localhost:5000/api/files/FILE_ID/download \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -O -J
+```
+
+---
+
 ## Acknowledgments
 
 This project was developed as part of an advanced backend and frontend development module. It demonstrates the integration of professional workflows, technologies, and design patterns to create scalable, maintainable applications.

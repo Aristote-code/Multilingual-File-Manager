@@ -7,13 +7,15 @@
     "backend"
   ],
   "scripts": {
-    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\" \"npm run start:worker\"",
     "start:backend": "npm run start --workspace=backend",
     "start:frontend": "npm run dev --workspace=frontend",
-    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "start:worker": "npm run worker --workspace=backend",
+    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\" \"npm run worker --workspace=backend\"",
     "test": "npm run test --workspaces"
   },
   "dependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "redis": "^4.6.11"
   }
 }

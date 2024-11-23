@@ -1,61 +1,39 @@
-require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
-const i18next = require('i18next');
-const passport = require('passport');
 const cors = require('cors');
 const path = require('path');
-const fs = require('fs');
-const authRoutes = require('./routes/auth.routes');
-const fileRoutes = require('./routes/file.routes');
-const { configurePassport } = require('./config/passport');
+const connectDB = require('./config/database');
+require('dotenv').config();
 
+// Initialize express
 const app = express();
-const PORT = process.env.PORT || 3001;
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(__dirname, '../uploads');
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
-
-// Ensure uploads directory has correct permissions
-fs.chmodSync(uploadsDir, '755');
+// Connect to MongoDB
+connectDB();
 
 // Middleware
-app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true
-}));
+app.use(cors());
 app.use(express.json());
-app.use(passport.initialize());
-configurePassport(passport);
+app.use(express.urlencoded({ extended: true }));
+
+// Create uploads directory if it doesn't exist
+const uploadDir = process.env.FILE_UPLOAD_PATH || 'uploads/';
+require('fs').mkdirSync(uploadDir, { recursive: true });
 
 // Serve static files from uploads directory
-app.use('/uploads', express.static(uploadsDir));
+app.use('/uploads', express.static(path.join(__dirname, '..', uploadDir)));
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/files', fileRoutes);
+app.use('/api/users', require('./routes/user.routes'));
+app.use('/api/files', require('./routes/file.routes'));
 
-// i18n configuration
-i18next.init({
-  lng: 'en',
-  resources: {
-    en: require('./locales/en.json'),
-    es: require('./locales/es.json')
-  }
+// Error handling middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Something broke!' });
 });
 
-// MongoDB connection
-mongoose.connect('mongodb://127.0.0.1:27017/file-manager')
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
-    console.log('Please make sure MongoDB is running.');
-    process.exit(1);
-  });
-
+// Start server
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+    console.log(`Server is running on port ${PORT}`);
 });
