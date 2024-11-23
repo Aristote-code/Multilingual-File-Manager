@@ -1,0 +1,37 @@
+{
+  "common": {
+    "login": "Kwinjira",
+    "register": "Kwiyandikisha",
+    "logout": "Gusohoka",
+    "username": "Izina ry'ukoresha",
+    "password": "Ijambo ry'ibanga",
+    "confirmPassword": "Emeza ijambo ry'ibanga",
+    "submit": "Ohereza",
+    "error": "Ikosa",
+    "success": "Byagenze neza"
+  },
+  "fileManager": {
+    "title": "Gucunga Dosiye",
+    "uploadButton": "Muzamura Dosiye",
+    "noFiles": "Nta dosiye zabonetse",
+    "uploadSuccess": "Dosiye yamuzwe neza",
+    "deleteSuccess": "Dosiye yasibwe neza",
+    "error": {
+      "upload": "Ikosa mu muzamura dosiye",
+      "delete": "Ikosa mu gusiba dosiye",
+      "fetch": "Ikosa mu gushaka dosiye"
+    }
+  },
+  "fileUpload": {
+    "clickToUpload": "Kanda kugira umuzamure",
+    "dragDrop": "cyangwa ukurure ureke",
+    "supportedFormats": "Ubwoko bwose bwa dosiye bwemewe"
+  },
+  "fileList": {
+    "name": "Izina",
+    "size": "Ingano",
+    "date": "Itariki",
+    "actions": "Ibikorwa",
+    "empty": "Nta dosiye zamuzwe"
+  }
+}

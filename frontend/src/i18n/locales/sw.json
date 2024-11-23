@@ -1,0 +1,37 @@
+{
+  "common": {
+    "login": "Ingia",
+    "register": "Jisajili",
+    "logout": "Toka",
+    "username": "Jina la mtumiaji",
+    "password": "Nywila",
+    "confirmPassword": "Thibitisha Nywila",
+    "submit": "Wasilisha",
+    "error": "Hitilafu",
+    "success": "Mafanikio"
+  },
+  "fileManager": {
+    "title": "Kidhibiti Faili",
+    "uploadButton": "Pakia Faili",
+    "noFiles": "Hakuna faili zilizopatikana",
+    "uploadSuccess": "Faili imepakiwa kwa mafanikio",
+    "deleteSuccess": "Faili imefutwa kwa mafanikio",
+    "error": {
+      "upload": "Hitilafu katika kupakia faili",
+      "delete": "Hitilafu katika kufuta faili",
+      "fetch": "Hitilafu katika kupata faili"
+    }
+  },
+  "fileUpload": {
+    "clickToUpload": "Bofya kupakia",
+    "dragDrop": "au buruta na uache",
+    "supportedFormats": "Miundo yote ya faili inakubalika"
+  },
+  "fileList": {
+    "name": "Jina",
+    "size": "Ukubwa",
+    "date": "Tarehe",
+    "actions": "Vitendo",
+    "empty": "Hakuna faili zilizopakiwa"
+  }
+}

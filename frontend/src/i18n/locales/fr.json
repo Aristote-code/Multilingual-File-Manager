@@ -1,0 +1,37 @@
+{
+  "common": {
+    "login": "Connexion",
+    "register": "S'inscrire",
+    "logout": "Déconnexion",
+    "username": "Nom d'utilisateur",
+    "password": "Mot de passe",
+    "confirmPassword": "Confirmer le mot de passe",
+    "submit": "Soumettre",
+    "error": "Erreur",
+    "success": "Succès"
+  },
+  "fileManager": {
+    "title": "Gestionnaire de fichiers",
+    "uploadButton": "Télécharger un fichier",
+    "noFiles": "Aucun fichier trouvé",
+    "uploadSuccess": "Fichier téléchargé avec succès",
+    "deleteSuccess": "Fichier supprimé avec succès",
+    "error": {
+      "upload": "Erreur lors du téléchargement du fichier",
+      "delete": "Erreur lors de la suppression du fichier",
+      "fetch": "Erreur lors de la récupération des fichiers"
+    }
+  },
+  "fileUpload": {
+    "clickToUpload": "Cliquez pour télécharger",
+    "dragDrop": "ou glisser-déposer",
+    "supportedFormats": "Tous les formats de fichiers sont pris en charge"
+  },
+  "fileList": {
+    "name": "Nom",
+    "size": "Taille",
+    "date": "Date",
+    "actions": "Actions",
+    "empty": "Aucun fichier téléchargé"
+  }
+}
