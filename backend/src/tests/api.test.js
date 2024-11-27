@@ -134,3 +134,216 @@ async function runTests() {
 
 // Run the tests
 runTests();
+
+const request = require('supertest');
+const mongoose = require('mongoose');
+const app = require('../app');
+const User = require('../models/User');
+const File = require('../models/File');
+const { generateToken } = require('./utils/testHelpers');
+
+describe('API Integration Tests', () => {
+    let authToken;
+    let testUser;
+
+    beforeAll(async () => {
+        // Create test user
+        testUser = await User.create({
+            username: 'testuser',
+            email: 'test@example.com',
+            password: 'password123',
+            preferredLanguage: 'en'
+        });
+        authToken = generateToken(testUser._id);
+    });
+
+    afterAll(async () => {
+        await User.deleteMany({});
+        await File.deleteMany({});
+        await mongoose.connection.close();
+    });
+
+    describe('Auth Endpoints', () => {
+        describe('POST /api/users/register', () => {
+            it('should register a new user', async () => {
+                const res = await request(app)
+                    .post('/api/users/register')
+                    .send({
+                        username: 'newuser',
+                        email: 'new@example.com',
+                        password: 'password123',
+                        preferredLanguage: 'en'
+                    });
+
+                expect(res.status).toBe(201);
+                expect(res.body).toHaveProperty('token');
+                expect(res.body.user).toHaveProperty('username', 'newuser');
+            });
+
+            it('should reject duplicate email', async () => {
+                const res = await request(app)
+                    .post('/api/users/register')
+                    .send({
+                        username: 'another',
+                        email: 'test@example.com',
+                        password: 'password123',
+                        preferredLanguage: 'en'
+                    });
+
+                expect(res.status).toBe(400);
+                expect(res.body).toHaveProperty('error');
+            });
+        });
+
+        describe('POST /api/users/login', () => {
+            it('should login existing user', async () => {
+                const res = await request(app)
+                    .post('/api/users/login')
+                    .send({
+                        email: 'test@example.com',
+                        password: 'password123'
+                    });
+
+                expect(res.status).toBe(200);
+                expect(res.body).toHaveProperty('token');
+            });
+
+            it('should reject invalid credentials', async () => {
+                const res = await request(app)
+                    .post('/api/users/login')
+                    .send({
+                        email: 'test@example.com',
+                        password: 'wrongpassword'
+                    });
+
+                expect(res.status).toBe(401);
+                expect(res.body).toHaveProperty('error');
+            });
+        });
+    });
+
+    describe('File Endpoints', () => {
+        let testFile;
+
+        describe('POST /api/files/upload', () => {
+            it('should upload file', async () => {
+                const res = await request(app)
+                    .post('/api/files/upload')
+                    .set('Authorization', `Bearer ${authToken}`)
+                    .attach('file', Buffer.from('test content'), 'test.txt');
+
+                expect(res.status).toBe(201);
+                expect(res.body).toHaveProperty('taskId');
+                testFile = res.body.file;
+            });
+
+            it('should reject unauthorized upload', async () => {
+                const res = await request(app)
+                    .post('/api/files/upload')
+                    .attach('file', Buffer.from('test content'), 'test.txt');
+
+                expect(res.status).toBe(401);
+            });
+        });
+
+        describe('GET /api/files', () => {
+            it('should list user files', async () => {
+                const res = await request(app)
+                    .get('/api/files')
+                    .set('Authorization', `Bearer ${authToken}`);
+
+                expect(res.status).toBe(200);
+                expect(Array.isArray(res.body)).toBe(true);
+            });
+        });
+
+        describe('GET /api/files/search', () => {
+            it('should search files', async () => {
+                const res = await request(app)
+                    .get('/api/files/search')
+                    .set('Authorization', `Bearer ${authToken}`)
+                    .query({ q: 'test' });
+
+                expect(res.status).toBe(200);
+                expect(Array.isArray(res.body)).toBe(true);
+            });
+        });
+
+        describe('GET /api/files/progress/:taskId', () => {
+            it('should check upload progress', async () => {
+                const res = await request(app)
+                    .get(`/api/files/progress/${testFile.taskId}`)
+                    .set('Authorization', `Bearer ${authToken}`);
+
+                expect(res.status).toBe(200);
+                expect(res.body).toHaveProperty('progress');
+            });
+        });
+
+        describe('DELETE /api/files/:id', () => {
+            it('should delete file', async () => {
+                const res = await request(app)
+                    .delete(`/api/files/${testFile._id}`)
+                    .set('Authorization', `Bearer ${authToken}`);
+
+                expect(res.status).toBe(200);
+            });
+
+            it('should reject unauthorized deletion', async () => {
+                const res = await request(app)
+                    .delete(`/api/files/${testFile._id}`);
+
+                expect(res.status).toBe(401);
+            });
+        });
+    });
+
+    describe('User Profile Endpoints', () => {
+        describe('GET /api/users/profile', () => {
+            it('should get user profile', async () => {
+                const res = await request(app)
+                    .get('/api/users/profile')
+                    .set('Authorization', `Bearer ${authToken}`);
+
+                expect(res.status).toBe(200);
+                expect(res.body).toHaveProperty('username', testUser.username);
+            });
+        });
+
+        describe('PUT /api/users/profile', () => {
+            it('should update user profile', async () => {
+                const res = await request(app)
+                    .put('/api/users/profile')
+                    .set('Authorization', `Bearer ${authToken}`)
+                    .send({
+                        preferredLanguage: 'fr'
+                    });
+
+                expect(res.status).toBe(200);
+                expect(res.body.preferredLanguage).toBe('fr');
+            });
+        });
+    });
+
+    describe('Error Handling', () => {
+        it('should handle 404 routes', async () => {
+            const res = await request(app)
+                .get('/api/nonexistent');
+
+            expect(res.status).toBe(404);
+        });
+
+        it('should handle validation errors', async () => {
+            const res = await request(app)
+                .post('/api/users/register')
+                .send({
+                    username: 'a',
+                    email: 'invalid',
+                    password: '123'
+                });
+
+            expect(res.status).toBe(400);
+            expect(res.body).toHaveProperty('error');
+        });
+    });
+});

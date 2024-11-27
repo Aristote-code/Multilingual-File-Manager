@@ -17,5 +17,9 @@
   "dependencies": {
     "concurrently": "^8.2.2",
     "redis": "^4.6.11"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "jest-mock": "^29.0.0"
   }
 }
