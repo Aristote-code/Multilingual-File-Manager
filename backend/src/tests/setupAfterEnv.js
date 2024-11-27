@@ -1,91 +1,108 @@
-const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
+const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { User } = require('../../src/models');
+const User = require('../models/User');
+const path = require('path');
+const fs = require('fs');
+
+// Create test directories
+const testDirectories = {
+    uploadsDir: path.join(__dirname, '../../uploads'),
+    testUploadsDir: path.join(__dirname, '../test-uploads')
+};
+
+// Ensure test directories exist
+Object.values(testDirectories).forEach(dir => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+});
+
+// Set global paths for tests
+global.__TEST_UPLOAD_DIR__ = testDirectories.testUploadsDir;
+global.__UPLOADS_DIR__ = testDirectories.uploadsDir;
 
 let mongoServer;
 const originalConsole = {
     log: console.log,
     error: console.error,
     warn: console.warn,
-    info: console.info,
-    debug: console.debug
+    info: console.info
 };
 
-// Setup MongoDB Memory Server
 beforeAll(async () => {
+    // Start MongoDB Memory Server
     mongoServer = await MongoMemoryServer.create();
     const mongoUri = mongoServer.getUri();
-    
-    try {
-        await mongoose.connect(mongoUri);
-        
-        // Set up test environment variables
-        process.env.JWT_SECRET = 'test-jwt-secret';
-        process.env.FILE_UPLOAD_PATH = './uploads/test';
-        
-        // Create test user
-        const testUser = new User({
-            username: 'testuser',
-            email: 'test@example.com',
-            password: await bcrypt.hash('password123', 10),
-            preferredLanguage: 'en'
-        });
-        
-        await testUser.save();
-        global.testUser = testUser;
-        global.testUserToken = jwt.sign(
-            { id: testUser._id },
-            process.env.JWT_SECRET
-        );
-    } catch (error) {
-        console.error('Error setting up test database:', error);
-        throw error;
-    }
+    await mongoose.connect(mongoUri);
+    console.log('Test database setup completed');
+
+    // Create test user
+    const hashedPassword = await bcrypt.hash('testpassword', 10);
+    const testUser = new User({
+        username: 'testuser',
+        email: 'test@example.com',
+        password: hashedPassword,
+        role: 'user',
+        preferredLanguage: 'en'
+    });
+
+    await testUser.save();
+
+    // Generate JWT token with proper payload structure
+    const token = jwt.sign(
+        { 
+            userId: testUser._id,
+            username: testUser.username,
+            role: testUser.role 
+        },
+        process.env.JWT_SECRET || 'your-secret-key',
+        { expiresIn: '24h' }
+    );
+
+    // Set global variables for tests
+    global.__TEST_TOKEN__ = token;
+    global.__TEST_USER__ = testUser;
+
+    console.log('Test setup completed');
+    console.log('Test user ID:', testUser._id);
+    console.log('Auth token:', token);
 });
 
-// Clear database between tests
-beforeEach(async () => {
-    // Mock console methods
-    console.log = jest.fn();
-    console.error = jest.fn();
-    console.warn = jest.fn();
-    console.info = jest.fn();
-    console.debug = jest.fn();
-
-    // Clear all collections except users
-    const collections = mongoose.connection.collections;
-    for (const key in collections) {
-        if (key !== 'users') {
-            await collections[key].deleteMany();
-        }
-    }
-});
-
-// Restore console after each test
-afterEach(() => {
-    console.log = originalConsole.log;
-    console.error = originalConsole.error;
-    console.warn = originalConsole.warn;
-    console.info = originalConsole.info;
-    console.debug = originalConsole.debug;
-});
-
-// Cleanup after all tests
 afterAll(async () => {
-    await mongoose.connection.dropDatabase();
-    await mongoose.connection.close();
+    await mongoose.disconnect();
     await mongoServer.stop();
+
+    // Clean up test directories
+    Object.values(testDirectories).forEach(dir => {
+        if (fs.existsSync(dir)) {
+            fs.rmSync(dir, { recursive: true, force: true });
+        }
+    });
 });
 
-// Global mocks
-global.__mocks__ = {
-    fs: {
-        promises: {
-            readFile: jest.fn(),
-            writeFile: jest.fn(),
-            unlink: jest.fn()
-        }
+// Override console methods for cleaner test output
+console.log = (...args) => {
+    if (process.env.DEBUG) {
+        originalConsole.log(...args);
+    }
+};
+
+console.error = (...args) => {
+    if (process.env.DEBUG) {
+        originalConsole.error(...args);
+    }
+};
+
+console.warn = (...args) => {
+    if (process.env.DEBUG) {
+        originalConsole.warn(...args);
+    }
+};
+
+console.info = (...args) => {
+    if (process.env.DEBUG) {
+        originalConsole.info(...args);
     }
 };
