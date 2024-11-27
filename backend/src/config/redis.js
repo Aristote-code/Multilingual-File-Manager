@@ -1,17 +1,18 @@
 const Redis = require('ioredis');
-require('dotenv').config();
+const logger = require('../utils/logger');
 
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false
-});
+const createClient = () => {
+    const client = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
-redis.on('error', (err) => {
-    console.error('Redis Client Error:', err);
-});
+    client.on('connect', () => {
+        logger.info('Redis client connected');
+    });
 
-redis.on('connect', () => {
-    console.log('Connected to Redis successfully');
-});
+    client.on('error', (error) => {
+        logger.error('Redis client error:', error);
+    });
 
-module.exports = redis;
+    return client;
+};
+
+module.exports = createClient;

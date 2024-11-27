@@ -1,25 +1,12 @@
 {
-  "name": "multilingual-file-manager",
-  "version": "1.0.0",
-  "private": true,
-  "workspaces": [
-    "frontend",
-    "backend"
+  "presets": [
+    ["@babel/preset-env", {
+      "targets": {
+        "node": "current"
+      }
+    }]
   ],
   "scripts": {
-    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\" \"npm run start:worker\"",
-    "start:backend": "npm run start --workspace=backend",
-    "start:frontend": "npm run dev --workspace=frontend",
-    "start:worker": "npm run worker --workspace=backend",
-    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\" \"npm run worker --workspace=backend\"",
-    "test": "npm run test --workspaces"
-  },
-  "dependencies": {
-    "concurrently": "^8.2.2",
-    "redis": "^4.6.11"
-  },
-  "devDependencies": {
-    "jest": "^29.0.0",
-    "jest-mock": "^29.0.0"
+    "test": "cd backend && jest --config jest.config.js --detectOpenHandles --forceExit"
   }
 }

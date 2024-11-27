@@ -1,24 +1,46 @@
-const Redis = require('redis');
-const { promisify } = require('util');
+const Redis = require('ioredis');
 
 class QueueService {
     constructor() {
-        this.client = Redis.createClient(process.env.REDIS_URL);
-        
-        // Promisify Redis commands
-        this.lpush = promisify(this.client.lPush).bind(this.client);
-        this.rpop = promisify(this.client.rPop).bind(this.client);
-        this.set = promisify(this.client.set).bind(this.client);
-        this.get = promisify(this.client.get).bind(this.client);
-
-        this.client.on('error', (err) => console.error('Redis Client Error', err));
-        this.client.on('connect', () => console.log('Redis Client Connected'));
+        this.client = null;
+        this.isConnected = false;
     }
 
-    // Add a task to the queue
+    async connect() {
+        if (!this.isConnected) {
+            try {
+                this.client = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
+                    maxRetriesPerRequest: 3,
+                    enableReadyCheck: true,
+                    retryStrategy: (times) => {
+                        return Math.min(times * 50, 2000);
+                    }
+                });
+
+                this.client.on('error', (err) => {
+                    console.error('Redis connection error:', err);
+                    this.isConnected = false;
+                });
+
+                this.client.on('connect', () => {
+                    this.isConnected = true;
+                });
+
+                await this.client.ping();
+                this.isConnected = true;
+            } catch (error) {
+                console.error('Failed to connect to Redis:', error);
+                throw error;
+            }
+        }
+    }
+
     async addToQueue(queueName, data) {
         try {
-            await this.lpush(queueName, JSON.stringify(data));
+            if (!this.isConnected) {
+                await this.connect();
+            }
+            await this.client.lpush(queueName, JSON.stringify(data));
             return true;
         } catch (error) {
             console.error('Error adding to queue:', error);
@@ -26,21 +48,33 @@ class QueueService {
         }
     }
 
-    // Process tasks from the queue
-    async processQueue(queueName) {
+    async getFromQueue(queueName) {
         try {
-            const data = await this.rpop(queueName);
+            if (!this.isConnected) {
+                await this.connect();
+            }
+            const data = await this.client.rpop(queueName);
             return data ? JSON.parse(data) : null;
         } catch (error) {
-            console.error('Error processing queue:', error);
+            console.error('Error getting from queue:', error);
             return null;
+        }
+    }
+
+    async disconnect() {
+        if (this.client && this.isConnected) {
+            await this.client.quit();
+            this.isConnected = false;
         }
     }
 
     // Set progress for a task
     async setProgress(taskId, progress) {
         try {
-            await this.set(`progress:${taskId}`, progress.toString());
+            if (!this.isConnected) {
+                await this.connect();
+            }
+            await this.client.set(`progress:${taskId}`, progress.toString());
             return true;
         } catch (error) {
             console.error('Error setting progress:', error);
@@ -51,7 +85,10 @@ class QueueService {
     // Get progress for a task
     async getProgress(taskId) {
         try {
-            const progress = await this.get(`progress:${taskId}`);
+            if (!this.isConnected) {
+                await this.connect();
+            }
+            const progress = await this.client.get(`progress:${taskId}`);
             return progress ? parseInt(progress) : 0;
         } catch (error) {
             console.error('Error getting progress:', error);
@@ -60,4 +97,6 @@ class QueueService {
     }
 }
 
-module.exports = new QueueService();
+// Export a singleton instance
+const queueService = new QueueService();
+module.exports = queueService;

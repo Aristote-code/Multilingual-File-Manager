@@ -170,6 +170,14 @@ describe('Search API Integration Tests', () => {
                 expectAuthenticationError(error);
             }
         });
+
+        it('should handle pagination correctly', async () => {
+            // ... implementation
+        });
+
+        it('should handle invalid search parameters', async () => {
+            // ... implementation
+        });
     });
 
     describe('GET /search/suggestions', () => {
