@@ -2,6 +2,7 @@ const File = require('../models/File');
 const asyncHandler = require('express-async-handler');
 const multer = require('multer');
 const path = require('path');
+const fileQueue = require('../services/fileQueue');
 
 const storage = multer.diskStorage({
   destination: './uploads',
@@ -21,7 +22,17 @@ exports.uploadFile = asyncHandler(async (req, res) => {
   });
 
   await file.save();
-  res.status(201).json(file);
+
+  // Add file to processing queue
+  const job = await fileQueue.add('process-file', {
+    file: file,
+    userId: req.user._id
+  });
+
+  res.status(201).json({ 
+    ...file.toObject(),
+    jobId: job.id 
+  });
 });
 
 exports.getFiles = asyncHandler(async (req, res) => {
@@ -40,4 +51,17 @@ exports.deleteFile = asyncHandler(async (req, res) => {
   }
 
   res.json({ message: 'File deleted successfully' });
+});
+
+// Add job status endpoint
+exports.getJobStatus = asyncHandler(async (req, res) => {
+  const job = await fileQueue.getJob(req.params.jobId);
+  if (!job) {
+    return res.status(404).json({ message: 'Job not found' });
+  }
+  
+  const state = await job.getState();
+  const progress = job.progress();
+  
+  res.json({ state, progress });
 });

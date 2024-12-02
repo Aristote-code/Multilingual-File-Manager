@@ -1,27 +1,38 @@
 import axios from 'axios';
 
-export const api = axios.create({
-  baseURL: 'http://localhost:3001/api', // Updated to match backend port
-  headers: {
-    'Content-Type': 'application/json'
-  }
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+  timeout: 5000,
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+api.interceptors.request.use(
+  (config) => {
+    console.log('Making request to:', config.url);
+    return config;
+  },
+  (error) => {
+    console.error('Request error:', error);
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+    if (error.code === 'ERR_NETWORK' || error.code === 'ECONNABORTED') {
+      console.error('Cannot connect to backend server. Please ensure:');
+      console.error('1. Backend server is running (npm run dev in backend folder)');
+      console.error('2. Backend is running on port 3000');
+      console.error('3. No firewall is blocking the connection');
+      
+      error.response = {
+        data: {
+          message: 'Cannot connect to server. Please ensure the backend server is running.'
+        }
+      };
     }
     return Promise.reject(error);
   }
 );
+
+export { api };
